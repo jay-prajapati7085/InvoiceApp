@@ -1,0 +1,114 @@
+﻿@model InvoiceApp.Models.OrderCreateViewModel
+
+@{
+    ViewData["Title"] = "Create Order";
+    // Prepare a JS object mapping ProductId to SellingPrice
+    var productPrices = Model.Products.ToDictionary(p => p.ProductId, p => p.SellingPrice);
+}
+
+<h2>Create Order</h2>
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label asp-for="InvoiceDate"></label>
+        <input asp-for="InvoiceDate" class="form-control" type="date" />
+        <span asp-validation-for="InvoiceDate" class="text-danger"></span>
+    </div>
+
+    <table class="table" id="orderItemsTable">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.OrderItems.Count; i++)
+            {
+                <tr>
+                    <td>
+                        <select asp-for="OrderItems[@i].ProductId" class="form-control product-select" asp-items="@(new SelectList(Model.Products, "ProductId", "ProductName"))"></select>
+                        <span asp-validation-for="OrderItems[@i].ProductId" class="text-danger"></span>
+                    </td>
+                    <td>
+                        <input asp-for="OrderItems[@i].Quntity" class="form-control quantity-input" type="number" min="1" />
+                        <span asp-validation-for="OrderItems[@i].Quntity" class="text-danger"></span>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger" onclick="removeRow(this)">Remove</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button type="button" class="btn btn-secondary" onclick="addRow()">Add Item</button>
+
+    <div class="form-group mt-3">
+        <label asp-for="TotalAmount"></label>
+        <input asp-for="TotalAmount" class="form-control" type="number" step="0.01" readonly id="TotalAmount" />
+        <span asp-validation-for="TotalAmount" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create Invoice</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Product prices as a JS object
+        var productPrices = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(productPrices));
+
+        function recalculateTotal() {
+            var total = 0;
+            $('#orderItemsTable tbody tr').each(function () {
+                var productId = $(this).find('.product-select').val();
+                var qty = parseInt($(this).find('.quantity-input').val()) || 0;
+                var price = productPrices[productId] || 0;
+                total += price * qty;
+            });
+            $('#TotalAmount').val(total.toFixed(2));
+        }
+
+        function addRow() {
+            var table = document.getElementById('orderItemsTable').getElementsByTagName('tbody')[0];
+            var rowCount = table.rows.length;
+            var row = table.insertRow(rowCount);
+            var productOptions = '';
+            @foreach (var product in Model.Products)
+            {
+                <text>
+                    productOptions += `<option value="@product.ProductId">@product.ProductName</option>`;
+                </text>
+            }
+            row.innerHTML = `
+                <td>
+                    <select name="OrderItems[${rowCount}].ProductId" class="form-control product-select">
+                        ${productOptions}
+                    </select>
+                </td>
+                <td>
+                    <input name="OrderItems[${rowCount}].Quntity" class="form-control quantity-input" type="number" min="1" value="1" />
+                </td>
+                <td>
+                    <button type="button" class="btn btn-danger" onclick="removeRow(this)">Remove</button>
+                </td>
+            `;
+            // Attach change events
+            $(row).find('.product-select, .quantity-input').on('change keyup', recalculateTotal);
+            recalculateTotal();
+        }
+
+        function removeRow(btn) {
+            var row = btn.closest('tr');
+            row.parentNode.removeChild(row);
+            recalculateTotal();
+        }
+
+        // Attach events to existing rows
+        $(document).ready(function () {
+            $('.product-select, .quantity-input').on('change keyup', recalculateTotal);
+            recalculateTotal();
+        });
+    </script>
+}

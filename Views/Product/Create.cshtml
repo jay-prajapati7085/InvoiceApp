@@ -1,0 +1,30 @@
+﻿@model InvoiceApp.Models.Product
+
+<form asp-action="Create">
+    <div class="form-group">
+        <label asp-for="ProductName"></label>
+        <input asp-for="ProductName" class="form-control" />
+        <span asp-validation-for="ProductName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="BasicRate"></label>
+        <input asp-for="BasicRate" class="form-control" />
+        <span asp-validation-for="BasicRate" class="text-danger"></span>
+    </div>
+    <div class="form-group form-check">
+        <input asp-for="IsGSTAplicable" class="form-check-input" />
+        <label asp-for="IsGSTAplicable" class="form-check-label"></label>
+    </div>
+    <div class="form-group">
+        <label asp-for="MRP" class="control-label"></label>
+        <input asp-for="MRP" class="form-control" />
+        <span asp-validation-for="MRP" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="SellingPrice"></label>
+        <input asp-for="SellingPrice" class="form-control" />
+        <span asp-validation-for="SellingPrice" class="text-danger"></span>
+    </div>
+    <!-- Repeat for all fields -->
+    <button type="submit" class="btn btn-primary">Add Product</button>
+</form>

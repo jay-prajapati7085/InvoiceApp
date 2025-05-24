@@ -1,0 +1,151 @@
+﻿using InvoiceApp.Models;
+using InvoiceApp.NewFolder;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Rotativa.AspNetCore;
+
+namespace InvoiceApp.Controllers
+{
+    public class OrderController : Controller
+    {
+
+        private readonly ApplicationDbContext _context;
+
+        public OrderController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Create()
+        {
+            var products = await _context.Products.ToListAsync();
+            var model = new OrderCreateViewModel
+            {
+                Products = products
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(OrderCreateViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                model.Products = await _context.Products.ToListAsync();
+                return View(model);
+            }
+
+            var orderItems = new List<OrderItem>();
+            foreach (var item in model.OrderItems)
+            {
+                var product = await _context.Products.FindAsync(item.ProductId);
+                if (product == null)
+                {
+                    ModelState.AddModelError("", $"Product with ID {item.ProductId} not found.");
+                    model.Products = await _context.Products.ToListAsync();
+                    return View(model);
+                }
+                orderItems.Add(new OrderItem
+                {
+                    Product = product,
+                    OrderDate = model.InvoiceDate,
+                    Quntity = item.Quntity,
+                    TotalSellingCost = product.SellingPrice * item.Quntity
+                });
+            }
+
+            var invoice = new Invoice
+            {
+                InvoiceDate = model.InvoiceDate,
+                OrderItems = orderItems,
+                TotalAmount = model.TotalAmount
+            };
+
+            _context.Invoices.Add(invoice);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Details", new { id = invoice.InvoiceId });
+        }
+
+        public async Task<IActionResult> Details(int id)
+        {
+            var invoice = await _context.Invoices
+                .Include(i => i.OrderItems)
+                .ThenInclude(oi => oi.Product)
+                .FirstOrDefaultAsync(i => i.InvoiceId == id);
+
+            if (invoice == null)
+            {
+                return NotFound();
+            }
+
+            var viewModel = new InvoiceViewModel
+            {
+                Invoice = invoice,
+                AmountInWords = NumberToWordsConverter.Convert(invoice.TotalAmount)
+            };
+
+            return View(viewModel);
+        }
+
+        public async Task<IActionResult> ExportPdf(int id)
+        {
+            var invoice = await _context.Invoices
+                .Include(i => i.OrderItems)
+                .ThenInclude(oi => oi.Product)
+                .FirstOrDefaultAsync(i => i.InvoiceId == id);
+
+            if (invoice == null)
+            {
+                return NotFound();
+            }
+
+            var viewModel = new InvoiceViewModel
+            {
+                Invoice = invoice,
+                AmountInWords = NumberToWordsConverter.Convert(invoice.TotalAmount)
+            };
+
+            ///
+
+            var invoicePdfView = new ViewAsPdf("Invoice", viewModel)
+            {
+                PageSize = Rotativa.AspNetCore.Options.Size.A4,
+                PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait,
+                FileName = $"Invoice_{invoice.InvoiceId}_{invoice.InvoiceDate:yyyyMMdd}.pdf"
+            };
+
+
+            // Get the PDF byte array
+            byte[] pdfBytes = await invoicePdfView.BuildFile(ControllerContext);
+
+            // Build folder path based on month
+            string folderName = invoice.InvoiceDate.ToString("yyyy-MM");
+            string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Invoices", folderName);
+
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
+
+            // Save PDF to file
+            string fileName = $"invoice-{invoice.InvoiceId}.pdf";
+            string fullPath = Path.Combine(folderPath, fileName);
+            await System.IO.File.WriteAllBytesAsync(fullPath, pdfBytes);
+
+            //// Optional: store the path in DB
+            //invoice.PdfPath = $"/Invoices/{folderName}/{fileName}";
+            //await _context.SaveChangesAsync();
+
+            // Return file to download or view
+            return File(pdfBytes, "application/pdf", fileName);
+            //
+
+            //return new ViewAsPdf("Invoice", viewModel)
+            //{
+            //    FileName = $"Invoice_{invoice.InvoiceId}_{invoice.InvoiceDate:yyyyMMdd}.pdf",
+            //};
+
+            
+        }
+    }
+}

@@ -1,0 +1,17 @@
+﻿@model Product
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <div class="form-group">
+        @Html.ActionLink("Add Product", "Index", "Product")
+    </div>
+    <div class="form-group">
+            @Html.ActionLink("Add Order", "Create", "Order")
+    </div>
+</div>
+
+
+

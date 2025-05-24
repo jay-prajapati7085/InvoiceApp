@@ -1,0 +1,79 @@
+﻿@model InvoiceApp.Models.InvoiceViewModel
+<div class="container">
+    <table class="table text-center border">
+        <thead class="">
+            <tr class="bg-success">
+                <th colspan="4" class="fw-bolder display-6 text-light">
+                    SHAILESHKUMAR AMRUTLAL PRAJAPATI
+                </th>
+            </tr>
+            <tr>
+                <th colspan="4" class="fs-5">
+                    Vilage: Ranasan, Ta: Vijapur, Dist: Mehsana
+                </th>
+            </tr>
+            <tr>
+                <th colspan="2" class="fs-6">PAN : ARRPP5355M</th>
+                <th colspan="2" class="fs-6">Mobile Number: 9586175499</th>
+            </tr>
+            <tr>
+                <th rowspan="3">To,</th>
+                <th>Retails Sales</th>
+                <th colspan="2" class="fs-5">Bill Of Supply</th>
+            </tr>
+            <tr>
+                <th>Village: Vijapur</th>
+                <th>Bill NO.</th>
+                <th>#@Model.Invoice.InvoiceId</th>
+            </tr>
+            <tr>
+                <th>Village: Vijapur</th>
+                <th>Date</th>
+                <th>@Model.Invoice.InvoiceDate.ToShortDateString()</th>
+            </tr>
+        </thead>
+        <tbody>
+            <table class="table border border-1">
+                <thead>
+                    <tr>
+                        <th>Discription</th>
+                        <th>POUCH</th>
+                        <th>Rate</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Invoice.OrderItems)
+                    {
+                        @if (item.Quntity != 0)
+                        {
+                            <tr>
+                                <td>@item.Product.ProductName</td>
+                                <td>@item.Quntity</td>
+                                <td>@item.Product.SellingPrice</td>
+                                <td>@item.TotalSellingCost</td>
+                            </tr>
+                        }
+
+                    }
+                    <tr class="fs-5 fw-bold">
+                        <td colspan="3">Total Amount <span class="fw-light">(@Model.AmountInWords)</span></td>
+                        <td>₹@Model.Invoice.TotalAmount</td>
+                    </tr>
+                    <tr class="bg-success text-light" style="border-bottom-width:0 !important">
+                        <td rowspan="3" style="border-bottom-width:0 !important"></td>
+                        <td colspan="3" style="border-bottom-width:0 !important">
+                            SHAILESHKUMAR A. PRAJAAPTI
+                        </td>
+                    </tr>
+                    <tr class="bg-success " style="border-bottom-width:0 !important">
+                        <td colspan="3" style="border-bottom-width:0 !important"></td>
+                    </tr>
+                    <tr class="bg-success text-light" style="border-bottom-width:0 !important">
+                        <td colspan="3">Authorised Signatory</td>
+                    </tr>
+                </tbody>
+            </table>
+        </tbody>
+    </table>
+</div>
