@@ -36,8 +36,19 @@ namespace InvoiceApp.Controllers
                 model.Products = await _context.Products.ToListAsync();
                 return View(model);
             }
-
+            
             var orderItems = new List<OrderItem>();
+
+            //var invoice = _context.Invoices
+            //    .Where(i => i.InvoiceDate == model.InvoiceDate).FirstOrDefault();
+            var invoice = await _context.Invoices
+                .Include(i => i.OrderItems)
+                .FirstOrDefaultAsync(i => i.InvoiceDate == model.InvoiceDate);
+
+            var existingOrdersByDate = await _context.OrderItems
+                .Include(p => p.Product)
+                .Where(p => p.OrderDate == model.InvoiceDate).ToListAsync();
+
             foreach (var item in model.OrderItems)
             {
                 var product = await _context.Products.FindAsync(item.ProductId);
@@ -47,6 +58,16 @@ namespace InvoiceApp.Controllers
                     model.Products = await _context.Products.ToListAsync();
                     return View(model);
                 }
+
+
+                if (existingOrdersByDate != null 
+                    && existingOrdersByDate.Any(p => p.Product.ProductId == item.ProductId))
+                {
+                    var product1 = await _context.Products.FindAsync(item.ProductId);
+                    continue;
+                }
+                    
+
                 orderItems.Add(new OrderItem
                 {
                     Product = product,
@@ -56,14 +77,24 @@ namespace InvoiceApp.Controllers
                 });
             }
 
-            var invoice = new Invoice
+            if(invoice != null)
             {
-                InvoiceDate = model.InvoiceDate,
-                OrderItems = orderItems,
-                TotalAmount = model.TotalAmount
-            };
+                invoice.OrderItems.AddRange(orderItems);
+                invoice.TotalAmount = invoice.OrderItems.Sum(oi => oi.TotalSellingCost);
+                _context.Update(invoice);
+            }
+            else
+            {
+                invoice = new Invoice
+                {
+                    InvoiceDate = model.InvoiceDate,
+                    OrderItems = orderItems,
+                    TotalAmount = model.TotalAmount
+                };
+                
+                _context.Invoices.Add(invoice);
+            }
 
-            _context.Invoices.Add(invoice);
             await _context.SaveChangesAsync();
             return RedirectToAction("Details", new { id = invoice.InvoiceId });
         }
