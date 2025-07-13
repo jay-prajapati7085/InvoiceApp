@@ -78,5 +78,6 @@
     </table>
 
     <a href="@Url.Action("ExportPdf", new { id = Model.Invoice.InvoiceId })" class="btn btn-primary">Download as PDF</a>
+    <a asp-controller="Order" asp-action="Create" class="btn btn-primary" asp-route-date="@Model.Invoice.InvoiceDate.AddDays(1)">Create Next Order</a>
 
 </div>

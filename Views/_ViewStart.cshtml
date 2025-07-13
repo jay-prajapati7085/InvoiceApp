@@ -1,3 +1,11 @@
 ﻿@{
-    Layout = "_Layout";
+    var path = Context.Request.Path.Value?.ToLowerInvariant() ?? "";
+    if (path.Contains("/order/bulkexport"))
+    {
+        Layout = "_InvoiceLayout";
+    }
+    else
+    {
+        Layout = "_Layout";
+    }
 }

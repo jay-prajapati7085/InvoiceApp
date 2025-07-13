@@ -7,6 +7,12 @@ namespace InvoiceApp.Models
     {
         public int InvoiceId { get; set; }
 
+        public int NewInvoiceId { get; set; }
+
+        // New column
+        public string FinancialYear { get; set; }
+
+
         [Required(ErrorMessage = "Invoice Date is required.")]
         [Display(Name = "Invoice Date")]
         public DateTime InvoiceDate { get; set; }

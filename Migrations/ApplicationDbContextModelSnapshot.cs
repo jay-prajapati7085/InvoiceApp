@@ -30,8 +30,15 @@ namespace InvoiceApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InvoiceId"));
 
+                    b.Property<string>("FinancialYear")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("InvoiceDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("NewInvoiceId")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18, 2)");
@@ -49,6 +56,9 @@ namespace InvoiceApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderId"));
 
+                    b.Property<int>("CrateCount")
+                        .HasColumnType("int");
+
                     b.Property<int?>("InvoiceId")
                         .HasColumnType("int");
 
@@ -63,6 +73,9 @@ namespace InvoiceApp.Migrations
 
                     b.Property<decimal>("TotalSellingCost")
                         .HasColumnType("decimal(18, 2)");
+
+                    b.Property<int>("UnitsPerCrate")
+                        .HasColumnType("int");
 
                     b.HasKey("OrderId");
 
@@ -87,7 +100,7 @@ namespace InvoiceApp.Migrations
                     b.Property<decimal>("BuyingCost")
                         .HasColumnType("decimal(18, 2)");
 
-                    b.Property<decimal?>("CGSTPercentage")
+                    b.Property<decimal>("CGSTPercentage")
                         .HasColumnType("decimal(5, 2)");
 
                     b.Property<bool>("IsGSTAplicable")
@@ -100,7 +113,7 @@ namespace InvoiceApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("SGSTPercentage")
+                    b.Property<decimal>("SGSTPercentage")
                         .HasColumnType("decimal(5, 2)");
 
                     b.Property<decimal>("SellingPrice")

@@ -1,4 +1,5 @@
 ﻿@model InvoiceApp.Models.InvoiceViewModel
+
 <div class="container">
     <table class="table text-center border">
         <thead class="">
@@ -14,7 +15,7 @@
             </tr>
             <tr>
                 <th colspan="2" class="fs-6">PAN : ARRPP5355M</th>
-                <th colspan="2" class="fs-6">Mobile Number: 9586175499</th>
+                <th colspan="2" class="fs-6">Mobile Number: 9909304051</th>
             </tr>
             <tr>
                 <th rowspan="3">To,</th>
@@ -24,7 +25,7 @@
             <tr>
                 <th>Village: Vijapur</th>
                 <th>Bill NO.</th>
-                <th>#@Model.Invoice.InvoiceId</th>
+                <th>#@Model.Invoice.NewInvoiceId</th>
             </tr>
             <tr>
                 <th>Village: Vijapur</th>
@@ -37,8 +38,11 @@
                 <thead>
                     <tr>
                         <th>Discription</th>
-                        <th>POUCH</th>
-                        <th>Rate</th>
+                        @* <th>UnitsPerCrate</th> *@
+                        <th>Crate</th>
+                        @* <th>Pouch</th> *@
+                        <th>RatePerCrate</th>
+                        <th>GST(%)</th>
                         <th>Amount</th>
                     </tr>
                 </thead>
@@ -47,10 +51,26 @@
                     {
                         @if (item.Quntity != 0)
                         {
-                            <tr>
+                            <tr class="text-center">
                                 <td>@item.Product.ProductName</td>
-                                <td>@item.Quntity</td>
-                                <td>@item.Product.SellingPrice</td>
+                                @* <td>@item.UnitsPerCrate</td> *@
+                                <td>@item.CrateCount</td>
+                                @* <td>@item.Quntity</td> *@
+                                <td>
+                                    @{
+                                        var rateWithoutGST = (item.Product.SellingPrice / 1.05m)*item.UnitsPerCrate;
+                                        var gstAmount = item.Product.SellingPrice - rateWithoutGST;
+                                    }
+                                    @rateWithoutGST.ToString("F2")
+                                </td>
+                                @if (item.Product.IsGSTAplicable)
+                                {
+                                    <td>5%</td>
+                                }
+                                else
+                                {
+                                    <td>0.0%</td>
+                                }
                                 <td>@item.TotalSellingCost</td>
                             </tr>
                         }
@@ -61,7 +81,7 @@
                         <td>₹@Model.Invoice.TotalAmount</td>
                     </tr>
                     <tr class="bg-success text-light" style="border-bottom-width:0 !important">
-                        <td rowspan="3" style="border-bottom-width:0 !important"></td>
+                        <td rowspan="3" style="border-bottom-width:0 !important" class="fs-5 fw-bold">GSTN: 24ARRPP5355M1Z1 </td>
                         <td colspan="3" style="border-bottom-width:0 !important">
                             SHAILESHKUMAR A. PRAJAAPTI
                         </td>

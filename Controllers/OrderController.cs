@@ -17,12 +17,13 @@ namespace InvoiceApp.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(DateTime? date = null)
         {
             var products = await _context.Products.ToListAsync();
             var model = new OrderCreateViewModel
             {
-                Products = products
+                Products = products,
+                InvoiceDate = date ?? DateTime.Today
             };
             return View(model);
         }
@@ -118,6 +119,50 @@ namespace InvoiceApp.Controllers
             };
 
             return View(viewModel);
+        }
+
+        public async Task<IActionResult> BulkExport(DateTime fromDate, DateTime toDate)
+        {
+            var invoices = await _context.Invoices
+                .Include(i => i.OrderItems)
+                .ThenInclude(oi => oi.Product)
+                .Where(i => i.InvoiceDate >= fromDate && i.InvoiceDate <= toDate)
+                .ToListAsync();
+
+            if (!invoices.Any())
+            {
+                return NotFound("No invoices found in the specified date range.");
+            }
+
+            using var memoryStream = new MemoryStream();
+            using (var archive = new System.IO.Compression.ZipArchive(memoryStream, System.IO.Compression.ZipArchiveMode.Create, true))
+            {
+                foreach (var invoice in invoices)
+                {
+                    var viewModel = new InvoiceViewModel
+                    {
+                        Invoice = invoice,
+                        AmountInWords = NumberToWordsConverter.Convert(invoice.TotalAmount)
+                    };
+
+                    var invoicePdfView = new ViewAsPdf("Invoice", viewModel)
+                    {
+                        PageSize = Rotativa.AspNetCore.Options.Size.A4,
+                        PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait,
+                        FileName = $"Invoice_{invoice.InvoiceId}_{invoice.InvoiceDate:yyyyMMdd}.pdf"
+                    };
+
+                    byte[] pdfBytes = await invoicePdfView.BuildFile(ControllerContext);
+
+                    var entry = archive.CreateEntry($"Invoice_{invoice.InvoiceId}_{invoice.InvoiceDate:yyyyMMdd}.pdf");
+                    using var entryStream = entry.Open();
+                    await entryStream.WriteAsync(pdfBytes, 0, pdfBytes.Length);
+                }
+            }
+
+            memoryStream.Position = 0;
+            string zipFileName = $"Invoices_{fromDate:yyyyMMdd}_{toDate:yyyyMMdd}.zip";
+            return File(memoryStream.ToArray(), "application/zip", zipFileName);
         }
 
         public async Task<IActionResult> ExportPdf(int id)
