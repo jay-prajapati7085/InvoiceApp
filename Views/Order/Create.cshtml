@@ -44,13 +44,13 @@
     </table>
     <button type="button" class="btn btn-secondary" onclick="addRow()">Add Item</button>
 
-    <div class="form-group mt-3">
+    <div class="form-group col-md-3 mt-3">
         <label asp-for="TotalAmount"></label>
         <input asp-for="TotalAmount" class="form-control" type="number" step="0.01" readonly id="TotalAmount" />
         <span asp-validation-for="TotalAmount" class="text-danger"></span>
     </div>
 
-    <button type="submit" class="btn btn-primary">Create Invoice</button>
+    <button type="submit" class="btn btn-primary mt-2">Create Invoice</button>
 </form>
 
 @section Scripts {
