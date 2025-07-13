@@ -3,6 +3,10 @@ using InvoiceApp.NewFolder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Rotativa.AspNetCore;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace InvoiceApp.Controllers
 {
@@ -98,6 +102,54 @@ namespace InvoiceApp.Controllers
 
             await _context.SaveChangesAsync();
             return RedirectToAction("Details", new { id = invoice.InvoiceId });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> OrderList(string search, DateTime? fromDate, DateTime? toDate, int page = 1, int pageSize = 10)
+        {
+            var query = _context.OrderItems.Include(o => o.Product).AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(o => o.Product.ProductName.Contains(search));
+            }
+            if (fromDate.HasValue)
+            {
+                query = query.Where(o => o.OrderDate >= fromDate.Value);
+            }
+            if (toDate.HasValue)
+            {
+                query = query.Where(o => o.OrderDate <= toDate.Value);
+            }
+
+            var totalCount = await query.CountAsync();
+            var orderList = await query
+                .OrderByDescending(o => o.OrderDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(o => new OrderLIstViewModel
+                {
+                    OrderId = o.OrderId,
+                    OrderDate = o.OrderDate,
+                    ProductId = o.Product.ProductId,
+                    ProductName = o.Product.ProductName,
+                    BasicRate = o.Product.BasicRate,
+                    BuyingCost = o.Product.BuyingCost,
+                    SellingPrice = o.Product.SellingPrice,
+                    CrateCount = o.CrateCount,
+                    Quntity = o.Quntity,
+                    UnitsPerCrate = o.UnitsPerCrate
+                })
+                .ToListAsync();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.Search = search;
+            ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
+            ViewBag.ToDate = toDate?.ToString("yyyy-MM-dd");
+
+            return View(orderList);
         }
 
         public async Task<IActionResult> Details(int id)
@@ -222,6 +274,74 @@ namespace InvoiceApp.Controllers
             //};
 
             
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> PreviewInvoice(int id)
+        {
+            var invoice = await _context.Invoices
+                .Include(i => i.OrderItems)
+                .ThenInclude(oi => oi.Product)
+                .FirstOrDefaultAsync(i => i.InvoiceId == id);
+
+            if (invoice == null)
+            {
+                return NotFound();
+            }
+
+            var viewModel = new InvoiceViewModel
+            {
+                Invoice = invoice,
+                AmountInWords = NumberToWordsConverter.Convert(invoice.TotalAmount)
+            };
+
+            return View("Invoice", viewModel);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditOrder(int id)
+        {
+            var orderItem = await _context.OrderItems
+                .Include(o => o.Product)
+                .FirstOrDefaultAsync(o => o.OrderId == id);
+            if (orderItem == null)
+            {
+                return NotFound();
+            }
+            ViewBag.Products = new SelectList(await _context.Products.ToListAsync(), "ProductId", "ProductName", orderItem.Product?.ProductId);
+            return View(orderItem);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditOrder(OrderItem model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Products = new SelectList(await _context.Products.ToListAsync(), "ProductId", "ProductName", model.Product?.ProductId);
+                return View(model);
+            }
+            var orderItem = await _context.OrderItems.Include(o => o.Product).FirstOrDefaultAsync(o => o.OrderId == model.OrderId);
+            if (orderItem == null)
+            {
+                return NotFound();
+            }
+            var product = await _context.Products.FindAsync(model.Product.ProductId);
+            if (product == null)
+            {
+                ModelState.AddModelError("Product.ProductId", "Product not found.");
+                ViewBag.Products = new SelectList(await _context.Products.ToListAsync(), "ProductId", "ProductName", model.Product?.ProductId);
+                return View(model);
+            }
+            orderItem.OrderDate = model.OrderDate;
+            orderItem.Product = product;
+            orderItem.Quntity = model.Quntity;
+            orderItem.CrateCount = model.CrateCount;
+            orderItem.UnitsPerCrate = model.UnitsPerCrate;
+            orderItem.TotalSellingCost = product.SellingPrice * model.Quntity;
+            _context.Update(orderItem);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("OrderList");
         }
     }
 }

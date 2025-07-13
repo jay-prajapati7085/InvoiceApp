@@ -1,0 +1,46 @@
+﻿@model InvoiceApp.Models.OrderItem
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="card shadow rounded-4 border-0">
+                <div class="card-body p-4">
+                    <h2 class="mb-4 text-center text-primary">Edit Order</h2>
+                    <form asp-action="EditOrder" method="post">
+                        <input type="hidden" asp-for="OrderId" />
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="OrderDate" class="form-label"></label>
+                                <input asp-for="OrderDate" class="form-control" type="date" />
+                                <span asp-validation-for="OrderDate" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Product.ProductId" class="form-label">Product</label>
+                                <select asp-for="Product.ProductId" class="form-control" asp-items="ViewBag.Products"></select>
+                                <span asp-validation-for="Product.ProductId" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Quntity" class="form-label"></label>
+                                <input asp-for="Quntity" class="form-control" type="number" min="1" />
+                                <span asp-validation-for="Quntity" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="CrateCount" class="form-label"></label>
+                                <input asp-for="CrateCount" class="form-control" type="number" min="0" />
+                                <span asp-validation-for="CrateCount" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="UnitsPerCrate" class="form-label"></label>
+                                <input asp-for="UnitsPerCrate" class="form-control" type="number" min="0" />
+                                <span asp-validation-for="UnitsPerCrate" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <button type="submit" class="btn btn-primary btn-lg px-5">Update Order</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

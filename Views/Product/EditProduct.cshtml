@@ -1,12 +1,16 @@
-﻿@model InvoiceApp.Models.Product
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model InvoiceApp.Models.Product
 
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-lg-7 col-md-9">
             <div class="card shadow rounded-4 border-0">
                 <div class="card-body p-4">
-                    <h2 class="mb-4 text-center text-primary">Add New Product</h2>
-                    <form asp-action="Create">
+                    <h2 class="mb-4 text-center text-primary">Edit Product</h2>
+                    <form asp-action="EditProduct" method="post">
+                        <input type="hidden" asp-for="ProductId" />
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label asp-for="ProductName" class="form-label"></label>
@@ -28,34 +32,30 @@
                                 <input asp-for="SellingPrice" class="form-control" />
                                 <span asp-validation-for="SellingPrice" class="text-danger"></span>
                             </div>
+                            <div class="col-md-6">
+                                <label asp-for="CGSTPercentage" class="form-label"></label>
+                                <input asp-for="CGSTPercentage" class="form-control" />
+                                <span asp-validation-for="CGSTPercentage" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="SGSTPercentage" class="form-label"></label>
+                                <input asp-for="SGSTPercentage" class="form-control" />
+                                <span asp-validation-for="SGSTPercentage" class="text-danger"></span>
+                            </div>
+                           @*  <div class="col-md-6">
+                                <label asp-for="UnitsPerCrate" class="form-label"></label>
+                                <input asp-for="UnitsPerCrate" class="form-control" />
+                                <span asp-validation-for="UnitsPerCrate" class="text-danger"></span>
+                            </div> *@
                             <div class="col-md-6 d-flex align-items-center">
                                 <div class="form-check mt-4">
                                     <input asp-for="IsGSTAplicable" class="form-check-input" id="IsGSTAplicable" />
                                     <label asp-for="IsGSTAplicable" class="form-check-label"></label>
                                 </div>
                             </div>
-                            <div class="col-md-6" id="gstFields" style="display:none;">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <label asp-for="CGSTPercentage" class="form-label"></label>
-                                        <input asp-for="CGSTPercentage" class="form-control" />
-                                        <span asp-validation-for="CGSTPercentage" class="text-danger"></span>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label asp-for="SGSTPercentage" class="form-label"></label>
-                                        <input asp-for="SGSTPercentage" class="form-control" />
-                                        <span asp-validation-for="SGSTPercentage" class="text-danger"></span>
-                                    </div>
-                                </div>
-                            </div>
-                            @* <div class="col-md-6">
-                                <label asp-for="UnitsPerCrate" class="form-label"></label>
-                                <input asp-for="UnitsPerCrate" class="form-control" />
-                                <span asp-validation-for="UnitsPerCrate" class="text-danger"></span>
-                            </div> *@
                         </div>
                         <div class="mt-4 text-center">
-                            <button type="submit" class="btn btn-primary btn-lg px-5">Add Product</button>
+                            <button type="submit" class="btn btn-primary btn-lg px-5">Update Product</button>
                         </div>
                     </form>
                 </div>
@@ -68,8 +68,15 @@
     <script>
         function toggleGSTFields() {
             var gstCheckbox = document.getElementById('IsGSTAplicable');
-            var gstFields = document.getElementById('gstFields');
-            gstFields.style.display = gstCheckbox.checked ? 'block' : 'none';
+            var cgst = document.querySelector('[name="CGSTPercentage"]');
+            var sgst = document.querySelector('[name="SGSTPercentage"]');
+            if (gstCheckbox.checked) {
+                cgst.parentElement.style.display = 'block';
+                sgst.parentElement.style.display = 'block';
+            } else {
+                cgst.parentElement.style.display = 'none';
+                sgst.parentElement.style.display = 'none';
+            }
         }
         document.getElementById('IsGSTAplicable').addEventListener('change', toggleGSTFields);
         window.addEventListener('DOMContentLoaded', toggleGSTFields);

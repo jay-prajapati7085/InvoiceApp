@@ -1,0 +1,79 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model IEnumerable<InvoiceApp.Models.OrderLIstViewModel>
+
+<div class="container mt-4">
+    <h2>Order List</h2>
+    <form method="get" class="mb-3">
+        <div class="row">
+            <div class="col-md-4 mb-2">
+                <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Filter by Product Name" />
+            </div>
+            <div class="col-md-3 mb-2">
+                <input type="date" name="fromDate" value="@ViewBag.FromDate" class="form-control" placeholder="From Date" />
+            </div>
+            <div class="col-md-3 mb-2">
+                <input type="date" name="toDate" value="@ViewBag.ToDate" class="form-control" placeholder="To Date" />
+            </div>
+            <div class="col-md-2 mb-2">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </div>
+    </form>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="thead-light">
+                <tr>
+                    <th>OrderId</th>
+                    <th>OrderDate</th>
+                    <th>ProductId</th>
+                    <th>Product Name</th>
+                    <th>Basic Rate</th>
+                    <th>Buying Cost</th>
+                    <th>Selling Price</th>
+                    <th>Crate</th>
+                    <th>Quantity</th>
+                    <th>Units Per Crate</th>
+                    <th>Update</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.OrderId</td>
+                        <td>@item.OrderDate.ToShortDateString()</td>
+                        <td>@item.ProductId</td>
+                        <td>@item.ProductName</td>
+                        <td>@item.BasicRate</td>
+                        <td>@item.BuyingCost</td>
+                        <td>@item.SellingPrice</td>
+                        <td>@item.CrateCount</td>
+                        <td>@item.Quntity</td>
+                        <td>@item.UnitsPerCrate</td>
+                        <td>
+                            <a asp-controller="Order" asp-action="EditOrder" asp-route-id="@item.OrderId" class="btn btn-sm btn-primary">Update</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            @{
+                int currentPage = ViewBag.CurrentPage ?? 1;
+                int pageSize = ViewBag.PageSize ?? 10;
+                int totalCount = ViewBag.TotalCount ?? 0;
+                int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+            }
+            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <a class="page-link" href="?search=@ViewBag.Search&fromDate=@ViewBag.FromDate&toDate=@ViewBag.ToDate&page=@(currentPage - 1)">Previous</a>
+            </li>
+            <li class="page-item @(currentPage == totalPages || totalPages == 0 ? "disabled" : "")">
+                <a class="page-link" href="?search=@ViewBag.Search&fromDate=@ViewBag.FromDate&toDate=@ViewBag.ToDate&page=@(currentPage + 1)">Next</a>
+            </li>
+        </ul>
+    </nav>
+</div>
