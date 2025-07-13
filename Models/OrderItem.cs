@@ -51,5 +51,40 @@ namespace InvoiceApp.Models
         /// Number of crates for this order item.
         /// </summary>
         public int CrateCount { get; set; }
+
+        // --- Calculation Properties ---
+
+        /// <summary>
+        /// Gets the rate per crate without GST.
+        /// </summary>
+        [NotMapped]
+        public decimal RateWithoutGST
+        {
+            get
+            {
+                if (Product == null) return 0m;
+                if (Product.IsGSTAplicable)
+                {
+                    // Assuming GST is 5% (1.05 multiplier)
+                    return (Product.SellingPrice / 1.05m) * UnitsPerCrate;
+                }
+                else
+                {
+                    return Product.SellingPrice * UnitsPerCrate;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the total rate for the item (rate without GST * crate count).
+        /// </summary>
+        [NotMapped]
+        public decimal TotalRate
+        {
+            get
+            {
+                return RateWithoutGST * CrateCount;
+            }
+        }
     }
 }
