@@ -42,6 +42,7 @@
                         <th>Crate</th>
                         @* <th>Pouch</th> *@
                         <th>RatePerCrate</th>
+                        <th>Total Rate</th>
                         <th>GST(%)</th>
                         <th>Amount</th>
                     </tr>
@@ -58,10 +59,28 @@
                                 @* <td>@item.Quntity</td> *@
                                 <td>
                                     @{
-                                        var rateWithoutGST = (item.Product.SellingPrice / 1.05m)*item.UnitsPerCrate;
-                                        var gstAmount = item.Product.SellingPrice - rateWithoutGST;
+                                        var rateWithoutGST = 0.0m;
+                                        if(item.Product.IsGSTAplicable)
+                                        {
+                                            // Calculate rate without GST
+                                            rateWithoutGST = (item.Product.SellingPrice / 1.05m) * item.UnitsPerCrate;
+                                            var gstAmount = item.Product.SellingPrice - rateWithoutGST;
+                                        }
+                                        else
+                                        {
+                                            // If GST is not applicable, use the selling price directly
+                                            rateWithoutGST = item.Product.SellingPrice * item.UnitsPerCrate;
+                                        }
+                                        // var rateWithoutGST = (item.Product.SellingPrice / 1.05m)*item.UnitsPerCrate;
+                                        // var gstAmount = item.Product.SellingPrice - rateWithoutGST;
                                     }
                                     @rateWithoutGST.ToString("F2")
+                                </td>
+                                <td>
+                                    @{
+                                        var totalRate = rateWithoutGST * item.CrateCount;
+                                    }
+                                    @totalRate.ToString("F2")
                                 </td>
                                 @if (item.Product.IsGSTAplicable)
                                 {
